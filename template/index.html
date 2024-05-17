@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>virtual AI</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      position: relative;
+      overflow: auto;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .panel-heading {
+      background-color: #007bff;
+      color: white;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .panel-body {
+      background-color: #fff;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .chat-box {
+      max-height: 400px;
+      overflow-y: scroll;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: #f1f1f1;
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 70%;
+      word-wrap: break-word;
+      animation: fadeIn 0.5s;
+      align-self: flex-start;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .user-message {
+      background-color: #007bff;
+      color: white;
+      align-self: flex-end;
+    }
+
+    .bot-message {
+      background-color: #28a745;
+      color: white;
+    }
+
+    #message-input {
+      width: calc(100% - 80px);
+      margin-right: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    #message-input:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    #send-btn {
+      padding: 10px 20px;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
+    }
+
+    #send-btn:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+
+    #video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    .d-flex {
+      display: flex;
+      align-items: center;
+    }
+
+    .form-group {
+      position: relative;
+      z-index: 2;
+    }
+
+  </style>
+</head>
+
+<body>
+  <video autoplay muted loop id="video-background">
+    <source src="static/images/videobg.mp4" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>
+  <div class="overlay"></div>
+
+  <div class="container mt-5">
+    <div class="panel panel-default">
+      <div class="panel-heading text-center">
+        <h3 class="panel-title">Type your Query!</h3>
+      </div>
+      <div class="panel-body text-center">
+        <div class="rounded p-4 shadow-lg">
+          <p class="text-center">Real-Time Assistance ~im_ukr77</p>
+        </div>
+      </div>
+    </div>
+    <div class="chat-box mt-3" id="chat-box">
+      <!-- Chat messages will be added here dynamically -->
+    </div>
+    <div class="form-group mt-3 d-flex">
+      <textarea class="form-control" rows="3" placeholder="Type your message here" id="message-input"></textarea>
+      <button type="button" class="btn btn-primary" id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      setInterval(highlightAll, 1000);
+
+      function highlightAll() {
+        document.querySelectorAll("pre code").forEach(block => {
+          hljs.highlightBlock(block);
+        });
+      }
+
+      const chatBox = document.getElementById("chat-box");
+      const messageInput = document.getElementById("message-input");
+      const sendBtn = document.getElementById("send-btn");
+
+      function addMessage(message, isUserMessage) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message", "p-3", "rounded");
+
+        if (isUserMessage) {
+          messageDiv.classList.add("user-message");
+        } else {
+          messageDiv.classList.add("bot-message");
+        }
+
+        messageDiv.innerText = message;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function sendMessage() {
+        const message = messageInput.value.trim();
+
+        if (message !== "") {
+          addMessage(message, true);
+          fetch("http://127.0.0.1:5000/api", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ message })
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            messageInput.value = "";
+            if (data.error) {
+              console.error(data.error);
+              addMessage("Error: " + data.error, false);
+              return;
+            }
+            addMessage(data.content, false);
+          })
+          .catch(error => {
+            console.error("Fetch error:", error);
+            addMessage("Error: Could not fetch response", false);
+          });
+        }
+      }
+
+      sendBtn.addEventListener("click", sendMessage);
+      messageInput.addEventListener("keydown", event => {
+        if (event.keyCode === 13 && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
